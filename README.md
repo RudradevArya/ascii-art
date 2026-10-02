@@ -118,3 +118,55 @@ Run `python blockart.py -h` for the full list. The ones you'll use most:
 - **Thin lines between rows.** The `<pre>` needs `line-height: 1`, and the font must have full-height block glyphs (Cascadia Code, Consolas, Menlo and DejaVu Sans Mono do).
 - **Subject and background are swapped, or details missing in mask mode.** The background is detected from the image border, so the subject must not touch all four edges. Try `--crop fit`, or use `--mode tone`.
 - **Characters print as `?` in the terminal.** Use Windows Terminal or VS Code's terminal, which support UTF-8.
+
+---
+
+## Web UI (Browser Version)
+
+A browser-based version is available in the `web/` folder. It runs entirely in the browser using [Pyodide](https://pyodide.org) (Python compiled to WebAssembly) — no server required.
+
+### Features
+
+- Upload images or enter text directly in the browser
+- All the same options as the CLI (mode, columns, colors, dither, etc.)
+- Live preview of generated art
+- Copy to clipboard or download as HTML snippet / plain text
+
+### Try Locally
+
+```bash
+# From the repository root:
+npx serve .
+# Then open http://localhost:3000/web/
+```
+
+Or use Python's built-in server:
+
+```bash
+python -m http.server 8000
+# Then open http://localhost:8000/web/
+```
+
+### Deploy to Cloudflare Pages
+
+1. Connect your repository to Cloudflare Pages
+2. Configure build settings:
+   - **Build command:** (leave empty — it's a static site)
+   - **Build output directory:** `/` (repository root)
+3. Deploy!
+
+The site will be available at `your-project.pages.dev/web/`.
+
+Alternatively, for a cleaner URL:
+1. Set **Build output directory** to `web`
+2. Add a build command to copy `blockart.py` into `web/`:
+   ```
+   cp blockart.py web/
+   ```
+3. The site will be at `your-project.pages.dev/`
+
+The `_headers` file configures the required CORS headers for Pyodide to work correctly.
+
+### How It Works
+
+The web UI loads `blockart.py` directly via Pyodide, so the core algorithm is identical to the CLI. A thin wrapper (`web/blockart_web.py`) adapts the file-based API to accept image bytes from JavaScript's File API.
