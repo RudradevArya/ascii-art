@@ -68,8 +68,24 @@ async function initPyodide() {
         updateLoadingMessage('Loading blockart module...');
         
         // Fetch the original blockart.py and the wrapper
+        // Try ./blockart.py first (Cloudflare Pages with cp build), fall back to ../blockart.py (local repo root)
+        const fetchBlockart = async () => {
+            const paths = ['./blockart.py', '../blockart.py'];
+            for (const path of paths) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        return response.text();
+                    }
+                } catch (e) {
+                    // Try next path
+                }
+            }
+            throw new Error('Could not load blockart.py from ./blockart.py or ../blockart.py');
+        };
+        
         const [blockartCode, wrapperCode] = await Promise.all([
-            fetch('../blockart.py').then(r => r.text()),
+            fetchBlockart(),
             fetch('blockart_web.py').then(r => r.text())
         ]);
         
