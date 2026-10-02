@@ -10,7 +10,22 @@ from types import SimpleNamespace
 # Add parent directory to path so we can import blockart
 sys.path.insert(0, '/home/pyodide')
 
-from PIL import Image
+from PIL import Image, ImageFont
+
+# Patch ImageFont.load_default for Pillow < 10.0.0 compatibility
+# The `size` parameter was added in Pillow 10.0.0
+_original_load_default = ImageFont.load_default
+def _patched_load_default(size=None):
+    """Wrapper for load_default that handles older Pillow versions."""
+    try:
+        if size is not None:
+            return _original_load_default(size=size)
+        return _original_load_default()
+    except TypeError:
+        # Older Pillow version - size parameter not supported
+        return _original_load_default()
+
+ImageFont.load_default = _patched_load_default
 
 # Import core functions from blockart.py
 import blockart
