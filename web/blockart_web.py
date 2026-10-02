@@ -10,9 +10,14 @@ from types import SimpleNamespace
 # Add parent directory to path so we can import blockart
 sys.path.insert(0, '/home/pyodide')
 
-from PIL import Image, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
-# Patch ImageFont.load_default for Pillow < 10.0.0 compatibility
+# ============================================================================
+# Pyodide/Pillow compatibility patches
+# Apply these BEFORE importing blockart to ensure they take effect
+# ============================================================================
+
+# Patch 1: ImageFont.load_default for Pillow < 10.0.0 compatibility
 # The `size` parameter was added in Pillow 10.0.0
 _original_load_default = ImageFont.load_default
 def _patched_load_default(size=None):
@@ -27,16 +32,36 @@ def _patched_load_default(size=None):
 
 ImageFont.load_default = _patched_load_default
 
-# Import core functions from blockart.py
+# ============================================================================
+# Import blockart module (patches must be applied first!)
+# ============================================================================
 import blockart
 from blockart import (
     CELL_ASPECT,
-    render_text,
     mask_art,
     tone_art,
     to_html_lines,
     css_block,
+    load_font,
 )
+
+# ============================================================================
+# Override render_text to fix float-to-int issue in Pyodide's PIL
+# In Pyodide, multiline_textbbox may return floats, but Image.new needs ints
+# ============================================================================
+def render_text(text, font_path=None, size=200, pad=40):
+    """Render text to an image (Pyodide-compatible version)."""
+    font = load_font(font_path, size)
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    left, top, right, bottom = probe.multiline_textbbox((0, 0), text, font=font, align="center")
+    # Convert to integers for Pyodide/PIL compatibility
+    width = int(right - left + 2 * pad)
+    height = int(bottom - top + 2 * pad)
+    img = Image.new("RGB", (width, height), "white")
+    ImageDraw.Draw(img).multiline_text(
+        (pad - left, pad - top), text, font=font, fill="black", align="center"
+    )
+    return img
 
 
 def make_args(
