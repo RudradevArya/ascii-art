@@ -2,6 +2,22 @@
 
 Turns any image or text into Unicode block art (`░ ▒ ▓ █`) that you can paste into a web page. It generated the Kuru logo in the portfolio header.
 
+## Live
+
+Try the web UI without installing anything:
+
+- **Production:** https://ascii.projects.xrudra.dev
+- **Cloudflare Pages:** https://ascii-art-asi.pages.dev
+
+## Web UI
+
+A browser-based interface is deployed on Cloudflare Pages:
+
+| Environment | URL |
+|---|---|
+| Production (custom domain) | https://ascii.projects.xrudra.dev |
+| Cloudflare Pages | https://ascii-art-asi.pages.dev |
+
 ## Setup
 
 You need Python 3.9+ and two libraries:
