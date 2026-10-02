@@ -1,0 +1,8 @@
+# Headers for serving from web/ directory directly
+# Note: When deploying to Cloudflare Pages, use the root _headers file instead
+/*
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+
+/*.js
+  Content-Type: application/javascript; charset=utf-8

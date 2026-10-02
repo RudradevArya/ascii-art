@@ -1,0 +1,13 @@
+# Headers for Cloudflare Pages - enables SharedArrayBuffer for Pyodide
+/*
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+
+# Allow CORS for Python files (needed by Pyodide fetch)
+/*.py
+  Access-Control-Allow-Origin: *
+  Content-Type: text/plain; charset=utf-8
+
+# JavaScript files
+/web/*.js
+  Content-Type: application/javascript; charset=utf-8

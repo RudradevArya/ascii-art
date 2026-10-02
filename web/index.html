@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Art Generator</title>
+    <link href="https://fonts.cdnfonts.com/css/cascadia-code" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Block Art Generator</h1>
+            <p class="subtitle">Turn images and text into Unicode block art (░ ▒ ▓ █)</p>
+        </header>
+
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p id="loading-message">Loading Pyodide...</p>
+                <p class="loading-hint">This may take a moment on first load</p>
+            </div>
+        </div>
+
+        <main>
+            <section class="input-section">
+                <div class="input-tabs">
+                    <button class="tab-btn active" data-tab="image">Image</button>
+                    <button class="tab-btn" data-tab="text">Text</button>
+                </div>
+
+                <div id="image-input" class="tab-content active">
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" id="image-file" accept="image/*" hidden>
+                        <div class="drop-zone-content">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            <p>Drop an image here or <span class="link">browse</span></p>
+                            <p class="hint">PNG, JPG, WebP supported</p>
+                        </div>
+                    </div>
+                    <div id="image-preview-container" class="image-preview-container hidden">
+                        <img id="image-preview" alt="Preview">
+                        <button id="clear-image" class="clear-btn" title="Clear image">×</button>
+                    </div>
+                </div>
+
+                <div id="text-input" class="tab-content">
+                    <textarea id="text-content" placeholder="Enter text to convert to block art&#10;Use \n for new lines"></textarea>
+                </div>
+            </section>
+
+            <section class="options-section">
+                <h2>Options</h2>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label for="mode">Mode</label>
+                        <select id="mode">
+                            <option value="mask">Mask (logos, icons, text)</option>
+                            <option value="tone">Tone (photos, gradients)</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="cols">Columns <span id="cols-value">100</span></label>
+                        <input type="range" id="cols" min="20" max="200" value="100">
+                    </div>
+
+                    <div class="option-group">
+                        <label for="crop">Crop</label>
+                        <select id="crop">
+                            <option value="full">Full (keep entire image)</option>
+                            <option value="fit">Fit (crop to subject)</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="font-size">Font Size (px) <span id="font-size-value">5</span></label>
+                        <input type="range" id="font-size" min="2" max="12" value="5" step="0.5">
+                    </div>
+
+                    <div class="option-group">
+                        <label for="fg-color">Foreground Color</label>
+                        <div class="color-input-wrapper">
+                            <input type="text" id="fg-color" placeholder="Auto (from image)">
+                            <input type="color" id="fg-color-picker" value="#CCCCCC">
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="bg-color">Background Color</label>
+                        <div class="color-input-wrapper">
+                            <input type="text" id="bg-color" placeholder="Auto (from image)">
+                            <input type="color" id="bg-color-picker" value="#0C0C0C">
+                        </div>
+                    </div>
+
+                    <div class="option-group mask-option">
+                        <label for="texture">Texture <span id="texture-value">0.82</span></label>
+                        <input type="range" id="texture" min="0" max="1" value="0.82" step="0.01">
+                    </div>
+
+                    <div class="option-group mask-option">
+                        <label for="margin">Margin <span id="margin-value">0.15</span></label>
+                        <input type="range" id="margin" min="0" max="0.5" value="0.15" step="0.01">
+                    </div>
+
+                    <div class="option-group tone-option hidden">
+                        <label for="gamma">Gamma <span id="gamma-value">1.0</span></label>
+                        <input type="range" id="gamma" min="0.3" max="3" value="1" step="0.1">
+                    </div>
+
+                    <div class="option-group tone-option hidden">
+                        <label for="color-palette">Color Palette</label>
+                        <select id="color-palette">
+                            <option value="0">Monochrome</option>
+                            <option value="4">4 colors</option>
+                            <option value="8">8 colors</option>
+                            <option value="16">16 colors</option>
+                            <option value="32">32 colors</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group tone-option hidden">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="invert">
+                            <span>Invert (for light backgrounds)</span>
+                        </label>
+                    </div>
+
+                    <div class="option-group tone-option hidden">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="dither">
+                            <span>Dither (smoother gradients)</span>
+                        </label>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="label">Aria Label</label>
+                        <input type="text" id="label" value="Block art" placeholder="Screen reader description">
+                    </div>
+
+                    <div class="option-group">
+                        <label for="seed">Random Seed</label>
+                        <input type="number" id="seed" value="7" min="0" max="9999">
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="generate-btn" disabled>
+                    <span class="btn-text">Generate Art</span>
+                    <span class="btn-loading hidden">
+                        <span class="btn-spinner"></span>
+                        Generating...
+                    </span>
+                </button>
+            </section>
+
+            <section id="output-section" class="output-section hidden">
+                <h2>Result</h2>
+                
+                <div class="output-tabs">
+                    <button class="output-tab-btn active" data-output="preview">Preview</button>
+                    <button class="output-tab-btn" data-output="snippet">HTML Snippet</button>
+                    <button class="output-tab-btn" data-output="plaintext">Plain Text</button>
+                </div>
+
+                <div id="preview-output" class="output-content active">
+                    <div class="output-info">
+                        <span id="dimensions"></span>
+                        <span id="colors-info"></span>
+                    </div>
+                    <div id="art-preview" class="art-preview"></div>
+                </div>
+
+                <div id="snippet-output" class="output-content">
+                    <div class="output-actions">
+                        <button id="copy-snippet" class="action-btn">Copy HTML</button>
+                        <button id="download-snippet" class="action-btn">Download snippet.html</button>
+                        <button id="download-preview" class="action-btn">Download preview.html</button>
+                    </div>
+                    <pre id="snippet-code" class="code-block"></pre>
+                </div>
+
+                <div id="plaintext-output" class="output-content">
+                    <div class="output-actions">
+                        <button id="copy-plaintext" class="action-btn">Copy Text</button>
+                        <button id="download-plaintext" class="action-btn">Download art.txt</button>
+                    </div>
+                    <pre id="plaintext-code" class="code-block plaintext"></pre>
+                </div>
+            </section>
+
+            <div id="error-message" class="error-message hidden"></div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://pyodide.org" target="_blank" rel="noopener">Pyodide</a> • 
+               <a href="https://github.com" target="_blank" rel="noopener">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
