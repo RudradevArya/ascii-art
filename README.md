@@ -149,21 +149,19 @@ python -m http.server 8000
 
 ### Deploy to Cloudflare Pages
 
+The web UI is hosted at [ascii.projects.xrudra.dev](https://ascii.projects.xrudra.dev).
+
+To deploy your own instance:
+
 1. Connect your repository to Cloudflare Pages
 2. Configure build settings:
-   - **Build command:** (leave empty — it's a static site)
-   - **Build output directory:** `/` (repository root)
+   - **Build command:** `cp blockart.py web/`
+   - **Build output directory:** `web`
 3. Deploy!
 
-The site will be available at `your-project.pages.dev/web/`.
+The build command copies `blockart.py` into the `web/` folder so the Python module is available alongside the web assets. The site is then served from the root URL (e.g. `your-project.pages.dev/`).
 
-Alternatively, for a cleaner URL:
-1. Set **Build output directory** to `web`
-2. Add a build command to copy `blockart.py` into `web/`:
-   ```
-   cp blockart.py web/
-   ```
-3. The site will be at `your-project.pages.dev/`
+To use a custom domain, add it in the Cloudflare Pages dashboard under **Custom domains**.
 
 The `_headers` file configures the required CORS headers for Pyodide to work correctly.
 
